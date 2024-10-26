@@ -26,6 +26,7 @@ const router = createRouter({
     {
       path: "/post/:id",
       component: SinglePostView,
+      name: "Post",
     },
     {
       path: "/stitch/:id",
