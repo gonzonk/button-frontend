@@ -1,15 +1,16 @@
 <script setup lang="ts">
+import router from "@/router";
+
 const props = defineProps(["post"]);
 </script>
 
 <template>
   <div class="thumbnail">
-    <a :href="`/post/${post._id}`">
+    <div @click="router.push({ path: `/post/${props.post._id}` })">
       <h3>{{ props.post.title }}</h3>
       <p class="author">{{ props.post.author }}</p>
-      <!-- <img :src="props.post.thumbnailMedia" /> -->
       <iframe :src="props.post.thumbnailMedia"></iframe>
-    </a>
+    </div>
   </div>
 </template>
 
