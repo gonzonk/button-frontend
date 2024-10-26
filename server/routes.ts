@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Friending, Posting, Rating, Sessioning, Stitching } from "./app";
+import { Authing, Commenting, DifficultyRating, Friending, Posting, QualityRating, Sessioning, Stitching } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -70,31 +70,53 @@ class Routes {
   }
 
   @Router.get("/posts")
-  @Router.validate(z.object({ author: z.string().optional() }))
-  async getPosts(author?: string) {
+  @Router.validate(z.object({ author: z.string().optional(), _id: z.string().optional(), community: z.string().optional() }))
+  async getPosts(author?: string, _id?: string, community?: string) {
     let posts;
+    console.log("post search");
     if (author) {
+      console.log("author search");
       const id = (await Authing.getUserByUsername(author))._id;
       posts = await Posting.getByAuthor(id);
+    } else if (_id) {
+      console.log("search by id");
+      const id = new ObjectId(_id);
+      posts = await Posting.getPostById(id);
+    } else if (community) {
+      console.log("community search");
+      posts = await Posting.getByCommunity(community);
+      console.log(posts);
     } else {
+      console.log("all search");
       posts = await Posting.getPosts();
     }
+    console.log(posts);
     return Responses.posts(posts);
   }
 
   @Router.post("/posts")
-  async createPost(session: SessionDoc, blueprintMedia: File, title: string, description: string, tags: string[], options?: PostOptions) {
+  async createPost(session: SessionDoc, blueprintMedia: string, thumbnailMedia: string, title: string, description: string, community: string, tags: string[], options?: PostOptions) {
     const user = Sessioning.getUser(session);
-    const created = await Posting.create(user, blueprintMedia, title, description, options);
+    const created = await Posting.create(user, blueprintMedia, thumbnailMedia, title, description, community, options);
     return { msg: created.msg, post: await Responses.post(created.post) };
   }
 
   @Router.post("/posts/:id")
-  async updatePost(session: SessionDoc, id: string, blueprintMedia?: File, title?: string, description?: string, tags?: string[], options?: PostOptions) {
+  async updatePost(
+    session: SessionDoc,
+    id: string,
+    blueprintMedia?: string,
+    thumbnailMedia?: string,
+    title?: string,
+    description?: string,
+    community?: string,
+    tags?: string[],
+    options?: PostOptions,
+  ) {
     const user = Sessioning.getUser(session);
     const oid = new ObjectId(id);
     await Posting.assertAuthorIsUser(oid, user);
-    return await Posting.update(oid, blueprintMedia, title, description, tags, options);
+    return await Posting.update(oid, blueprintMedia, thumbnailMedia, title, description, community, tags, options);
   }
 
   //anyone being able to add tags is intended behavior
@@ -190,34 +212,61 @@ class Routes {
     return Commenting.delete(oid);
   }
 
-  @Router.put("/ratings/:id")
-  async rate(rating: number, contentId: string) {
-    return await Rating.rate(new ObjectId(contentId), rating);
+  @Router.put("/qualityRatings/:id")
+  async rateQuality(rating: number, contentId: string) {
+    const newRating = await QualityRating.rate(new ObjectId(contentId), rating, "quality");
+    console.log("place quality rating", newRating);
+    return newRating;
   }
 
-  @Router.get("/ratings/:id")
-  async getRating(contentId: string) {
-    const rating = await Rating.getRating(new ObjectId(contentId));
+  @Router.get("/qualityRatings/:id")
+  async getRatingQuality(contentId: string) {
+    const rating = await QualityRating.getRating(new ObjectId(contentId), "quality");
+    console.log("getting quality rating", rating);
+    return { msg: rating.msg, rating: rating.rating };
+  }
+
+  @Router.put("/difficultyRatings/:id")
+  async rateDifficulty(rating: number, contentId: string) {
+    return await DifficultyRating.rate(new ObjectId(contentId), rating, "difficulty");
+  }
+
+  @Router.get("/difficultyRatings/:id")
+  async getRatingDifficulty(contentId: string) {
+    const rating = await DifficultyRating.getRating(new ObjectId(contentId), "difficulty");
+    console.log("getting difficulty rating", rating);
     return { msg: rating.msg, rating: rating.rating };
   }
 
   @Router.put("/stitches")
-  async makeStitch(session: SessionDoc, caption: string, media: File, parentId: string) {
+  async makeStitch(session: SessionDoc, caption: string, media: string, parentId: ObjectId, community: string) {
     const user = Sessioning.getUser(session);
-    const stitch = await Stitching.create(user, caption, media, new ObjectId(parentId));
+    const stitch = await Stitching.create(user, caption, media, new ObjectId(parentId), community);
+    console.log("making new stitch");
+    console.log(stitch);
     return { msg: stitch.msg, post: await Responses.stitch(stitch.stitch) };
   }
 
   @Router.get("/stitches")
-  @Router.validate(z.object({ author: z.string().optional() }))
-  async getStitches(author?: string) {
+  @Router.validate(z.object({ author: z.string().optional(), community: z.string().optional(), parent: z.string().optional(), id: z.string().optional() }))
+  async getStitches(author?: string, community?: string, parent?: string, id?: string) {
     let stitches;
-    if (author) {
+    if (id) {
+      stitches = await Stitching.getStitchById(new ObjectId(id));
+    } else if (author) {
       const id = (await Authing.getUserByUsername(author))._id;
       stitches = await Stitching.getByAuthor(id);
+    } else if (parent) {
+      console.log("parent search");
+      const id = new ObjectId(parent);
+      stitches = await Stitching.getByParent(id);
+    } else if (community) {
+      stitches = await Stitching.getByCommunity(community);
     } else {
+      console.log("getting all stitches");
       stitches = await Stitching.getStitches();
     }
+    console.log(stitches);
     return Responses.stitches(stitches);
   }
 

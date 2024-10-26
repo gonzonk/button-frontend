@@ -9,9 +9,11 @@ export interface PostOptions {
 
 export interface PostDoc extends BaseDoc {
   author: ObjectId;
-  blueprintMedia: File;
+  blueprintMedia: string;
+  thumbnailMedia: string;
   title: string;
   description: string;
+  community: string;
   tags: string[];
   options?: PostOptions;
 }
@@ -29,9 +31,9 @@ export default class PostingConcept {
     this.posts = new DocCollection<PostDoc>(collectionName);
   }
 
-  async create(author: ObjectId, blueprintMedia: File, title: string, description: string, options?: PostOptions) {
+  async create(author: ObjectId, blueprintMedia: string, thumbnailMedia: string, title: string, description: string, community: string, options?: PostOptions) {
     const tags: string[] = [];
-    const _id = await this.posts.createOne({ author, blueprintMedia, title, description, tags, options });
+    const _id = await this.posts.createOne({ author, blueprintMedia, thumbnailMedia, title, description, community, tags, options });
     return { msg: "Post successfully created!", post: await this.posts.readOne({ _id }) };
   }
 
@@ -41,21 +43,25 @@ export default class PostingConcept {
   }
 
   async getPostById(_id: ObjectId) {
-    const post = await this.posts.readOne({ _id });
+    const post = await this.posts.readOne({ _id: _id });
     if (post === null) {
       throw new NotFoundError(`Post not found!`);
     }
-    return post;
+    return [post];
   }
 
   async getByAuthor(author: ObjectId) {
     return await this.posts.readMany({ author });
   }
 
-  async update(_id: ObjectId, blueprintMedia?: File, title?: string, description?: string, tags?: string[], options?: PostOptions) {
+  async getByCommunity(community: string) {
+    return await this.posts.readMany({ community });
+  }
+
+  async update(_id: ObjectId, blueprintMedia?: string, thumbnailMedia?: string, title?: string, description?: string, community?: string, tags?: string[], options?: PostOptions) {
     // Note that if content or options is undefined, those fields will *not* be updated
     // since undefined values for partialUpdateOne are ignored.
-    await this.posts.partialUpdateOne({ _id }, { blueprintMedia, title, description, tags, options });
+    await this.posts.partialUpdateOne({ _id }, { blueprintMedia, title, thumbnailMedia, description, community, tags, options });
     return { msg: "Post successfully updated!" };
   }
 

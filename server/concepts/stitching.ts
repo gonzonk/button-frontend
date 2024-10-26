@@ -6,8 +6,9 @@ import { NotAllowedError, NotFoundError } from "./errors";
 export interface StitchDoc extends BaseDoc {
   author: ObjectId;
   caption: string;
-  media: File;
+  media: string;
   parent: ObjectId;
+  community: string;
 }
 
 /**
@@ -23,8 +24,8 @@ export default class StitchingConcept {
     this.stitches = new DocCollection<StitchDoc>(name);
   }
 
-  async create(author: ObjectId, caption: string, media: File, parent: ObjectId) {
-    const _id = await this.stitches.createOne({ author, caption, media, parent });
+  async create(author: ObjectId, caption: string, media: string, parent: ObjectId, community: string) {
+    const _id = await this.stitches.createOne({ author, caption, media, parent, community });
     return { msg: "Successfully stitched!", stitch: await this.stitches.readOne(_id) };
   }
 
@@ -33,15 +34,23 @@ export default class StitchingConcept {
   }
 
   async getStitchById(_id: ObjectId) {
-    const comment = await this.stitches.readOne({ _id });
-    if (comment === null) {
+    const stitch = await this.stitches.readOne({ _id });
+    if (stitch === null) {
       throw new NotFoundError(`Post not found!`);
     }
-    return comment;
+    return [stitch];
   }
 
   async getByAuthor(author: ObjectId) {
     return await this.stitches.readMany({ author: author });
+  }
+
+  async getByCommunity(community: string) {
+    return await this.stitches.readMany({ community });
+  }
+
+  async getByParent(parent: ObjectId) {
+    return await this.stitches.readMany({ parent });
   }
 
   async delete(_id: ObjectId) {

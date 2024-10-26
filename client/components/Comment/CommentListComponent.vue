@@ -32,14 +32,15 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <section v-if="isLoggedIn">
-    <h2>Create a comment:</h2>
-    <CreateCommentForm :parent="parent" @refreshPosts="getComments" />
-  </section>
+  <h1>Comments:</h1>
   <section class="comments" v-if="loaded && comments.length !== 0">
     <article v-for="comment in comments" :key="comment._id">
       <CommentComponent :comment="comment" @refreshComments="getComments" />
     </article>
+  </section>
+  <section v-if="isLoggedIn">
+    <h2>Create a comment:</h2>
+    <CreateCommentForm :parent="parent" @refreshPosts="getComments" />
   </section>
   <p v-else-if="loaded">No posts found</p>
   <p v-else>Loading...</p>

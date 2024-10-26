@@ -6,6 +6,8 @@ import HomeView from "../views/HomeView.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFoundView from "../views/NotFoundView.vue";
 import SettingView from "../views/SettingView.vue";
+import SinglePostView from "../views/SinglePostView.vue";
+import SingleStitchView from "../views/SingleStitchView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -20,6 +22,14 @@ const router = createRouter({
       name: "Settings",
       component: SettingView,
       meta: { requiresAuth: true },
+    },
+    {
+      path: "/post/:id",
+      component: SinglePostView,
+    },
+    {
+      path: "/stitch/:id",
+      component: SingleStitchView,
     },
     {
       path: "/login",

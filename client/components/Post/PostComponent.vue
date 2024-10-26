@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import CommentListComponent from "@/components/Comment/CommentListComponent.vue";
+import DifficultyRatingComponent from "@/components/Rating/DifficultyRatingComponent.vue";
+import StitchListComponent from "@/components/Stitch/StitchListComponent.vue";
 import { useUserStore } from "@/stores/user";
 import { formatDate } from "@/utils/formatDate";
 import { storeToRefs } from "pinia";
 import { fetchy } from "../../utils/fetchy";
+import QualityRatingComponent from "../Rating/QualityRatingComponent.vue";
 
 const props = defineProps(["post"]);
 const emit = defineEmits(["editPost", "refreshPosts"]);
@@ -20,31 +23,55 @@ const deletePost = async () => {
 </script>
 
 <template>
-  <p class="author">{{ props.post.author }}</p>
-  <p>{{ props.post.content }}</p>
-  <div class="base">
-    <menu v-if="props.post.author == currentUsername">
-      <li><button class="btn-small pure-button" @click="emit('editPost', props.post._id)">Edit</button></li>
-      <li><button class="button-error btn-small pure-button" @click="deletePost">Delete</button></li>
-    </menu>
-    <article class="timestamp">
-      <p v-if="props.post.dateCreated !== props.post.dateUpdated">Edited on: {{ formatDate(props.post.dateUpdated) }}</p>
-      <p v-else>Created on: {{ formatDate(props.post.dateCreated) }}</p>
-    </article>
+  <div class="post">
+    <div class="media">
+      <iframe :src="props.post.thumbnailMedia"></iframe>
+    </div>
+    <div class="info">
+      <h1>{{ props.post.title }}</h1>
+      <p class="author">by: {{ props.post.author }}</p>
+      <a :href="props.post.blueprintMedia">Instructions</a>
+      <p>Description: {{ props.post.description }}</p>
+      <article class="timestamp">
+        <p v-if="props.post.dateCreated !== props.post.dateUpdated">Edited on: {{ formatDate(props.post.dateUpdated) }}</p>
+        <p v-else>Created on: {{ formatDate(props.post.dateCreated) }}</p>
+      </article>
+      <menu v-if="props.post.author == currentUsername">
+        <li><button class="button-error btn-small pure-button" @click="deletePost">Delete</button></li>
+      </menu>
+    </div>
+  </div>
+  <div class="ratings">
+    <DifficultyRatingComponent :parent="props.post" />
+    <QualityRatingComponent :parent="props.post" />
   </div>
   <div class="comments">
-    <CommentListComponent :parent="post" />
+    <CommentListComponent :parent="props.post" />
+  </div>
+  <div class="stitches">
+    <StitchListComponent :parent="props.post" :allSearch="false" />
   </div>
 </template>
 
 <style scoped>
-p {
-  margin: 0em;
+.post {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100vw;
+  margin: 0px;
 }
 
-.author {
-  font-weight: bold;
-  font-size: 1.2em;
+iframe {
+  margin: 1vw;
+  width: 49vw;
+  height: 60vh;
+}
+
+.info {
+  width: 49vw;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 menu {
@@ -56,20 +83,12 @@ menu {
   margin: 0;
 }
 
-.timestamp {
+.ratings {
   display: flex;
-  justify-content: flex-end;
-  font-size: 0.9em;
-  font-style: italic;
-}
-
-.base {
-  display: flex;
-  justify-content: space-between;
+  flex-direction: row;
   align-items: center;
-}
-
-.base article:only-child {
-  margin-left: auto;
+  justify-content: space-around;
+  width: 100vw;
+  margin: 1vh;
 }
 </style>

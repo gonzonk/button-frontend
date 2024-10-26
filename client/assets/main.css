@@ -1,8 +1,16 @@
 /* Add some global styles here! */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 
 :root {
   --red: rgb(208, 67, 12);
-  --base-bg: #f1f3f5;
+  --base-bg: #8ca7cb;
+}
+
+#app {
+  background-color: #f6e5cd;
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
 }
 
 button.btn-small {

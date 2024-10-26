@@ -2,13 +2,17 @@
 import { ref } from "vue";
 import { fetchy } from "../../utils/fetchy";
 
-const content = ref("");
+const title = ref("");
+const blueprintMedia = ref("");
+const thumbnailMedia = ref("");
+const description = ref("");
+const community = ref("");
 const emit = defineEmits(["refreshPosts"]);
 
-const createPost = async (content: string) => {
+const createPost = async (title: string, blueprintMedia: string, thumbnailMedia: string, description: string, community: string) => {
   try {
     await fetchy("/api/posts", "POST", {
-      body: { content },
+      body: { title, blueprintMedia, thumbnailMedia, description, community },
     });
   } catch (_) {
     return;
@@ -18,14 +22,30 @@ const createPost = async (content: string) => {
 };
 
 const emptyForm = () => {
-  content.value = "";
+  title.value = "";
+  blueprintMedia.value = "";
+  thumbnailMedia.value = "";
+  description.value = "";
 };
 </script>
 
 <template>
-  <form @submit.prevent="createPost(content)">
-    <label for="content">Post Contents:</label>
-    <textarea id="content" v-model="content" placeholder="Create a post!" required> </textarea>
+  <form @submit.prevent="createPost(title, blueprintMedia, thumbnailMedia, description, community)">
+    <label for="title">Post Title:</label>
+    <input id="title" v-model="title" placeholder="Title" required />
+    <label for="thumbnailMedia">Thumbnail Link:</label>
+    <input id="thumbnailMedia" v-model="thumbnailMedia" placeholder="Thumbnail Link" required />
+    <label for="blueprintMedia">Blueprint Link:</label>
+    <input id="blueprintMedia" v-model="blueprintMedia" placeholder="Blueprint Link" required />
+    <label for="description">Description:</label>
+    <textarea id="description" v-model="description" placeholder="Description" required></textarea>
+    <label for="community">Community:</label>
+    <select id="community" v-model="community" placeholder="Community" required>
+      <option value="Crochet">Crochet</option>
+      <option value="Knitting">Knitting</option>
+      <option value="Woodworking">Woodworking</option>
+      <option value="Cross Stiching">Cross Stiching</option>
+    </select>
     <button type="submit" class="pure-button-primary pure-button">Create Post</button>
   </form>
 </template>
